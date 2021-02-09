@@ -1,0 +1,105 @@
+version: "3.7"
+services:
+  # certbot:
+  #   container_name: certbot
+  #   image: certbot/certbot
+  #   volumes:
+  #     - type: bind
+  #       source: ./data/certbot/conf
+  #       target: /etc/letsencrypt
+  #     - type: bind
+  #       source: ./data/certbot/www
+  #       target: /var/www/certbot
+
+  #   #command: "certonly --webroot -w /var/www/certbot -d open-science.berlin --non-interactive --agree-tos --register-unsafely-without-email --staging"
+  #   entrypoint: "/bin/sh -c ' trap exit TERM; while :; do certbot certonly --webroot -w /var/www/certbot --cert-name open-science.berlin -d open-science.berlin -n --force-renewal; sleep 12h & wait $${!}; done;'"
+
+  nginx:
+    build:
+      context: ./services/landing
+      args:
+        APP_ENV: dev
+    #reloading to update the certificate.
+    command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
+
+    container_name: landing_nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./services/landing/www:/www
+      - ./data/logs/nginx:/var/log/nginx
+      #certbot
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot/
+    depends_on:
+      - web
+
+  web:
+    container_name: web
+    build:
+      context: ./services/webinterface
+    command: python3 manage.py runserver 0.0.0.0:8000
+    environment:
+      - ES_USER=${ES_USER}
+      - ES_PASSWORD=${ES_PASSWORD}
+      - ES_SERVER=${ES_SERVER}
+    volumes:
+      - ./services/webinterface:/code
+      - ./helper:/helper
+    ports:
+      - 8000:8000
+    depends_on:
+      - es01
+
+
+  indexer:
+    container_name: indexer
+    build:
+      context: ./services/indexer
+    #command: '/bin/sh -c ''while :; scrapy runspider /code/dspace_spyder.py; do sleep 12h & wait $${!}; done''' 
+    #command: '/bin/sh -c ''while :; do python /code/dspace_parse.py ; sleep 12h ; done''' 
+    command: '/bin/sh -c ''while :; do echo "0" ; sleep 12h ; done''' 
+    #scrapy runspider /code/dspace_spyder.py &;
+    environment:
+      - ES_USER=${ES_USER}
+      - ES_PASSWORD=${ES_PASSWORD}
+      - ES_SERVER=${ES_SERVER}
+    volumes:
+      - ./services/indexer:/code
+      - ./data/cache:/data/cache
+      - ./helper:/helper
+
+
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+    container_name: es01
+    environment:
+      - discovery.type=single-node
+      - http.host=0.0.0.0
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=true
+      - ELASTIC_USERNAME=${ES_USER}
+      - ELASTIC_PASSWORD=${ES_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./data/es:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.2.0
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: http://es01:9200
+      XPACK_MONITORING_ENABLED: "true"
+      XPACK_MONITORING_COLLECTION_ENABLED: "true"
+      XPACK_SECURITY_ENABLED: "true"
+      ELASTICSEARCH_USERNAME: ${ES_USER}
+      ELASTICSEARCH_PASSWORD: ${ES_PASSWORD}
