@@ -6,8 +6,8 @@ import webbrowser
 import os
 import time
 import subprocess
-from ecapture import ecapture as ec
-import wolframalpha
+#from ecapture import ecapture as ec
+#import wolframalpha
 import json
 import requests
 from os import environ, path
@@ -210,23 +210,23 @@ def recognize_main():
                 speak('Here are some headlines from the Times of India,Happy reading')
                 time.sleep(6)
 
-            elif "camera" in statement or "take a photo" in statement:
-                ec.capture(0,"robo camera","img.jpg")
+            # elif "camera" in statement or "take a photo" in statement:
+            #     ec.capture(0,"robo camera","img.jpg")
 
             elif 'search'  in statement:
                 statement = statement.replace("search", "")
                 webbrowser.open_new_tab(statement)
                 time.sleep(5)
 
-            elif 'ask' in statement:
-                speak('I can answer to computational and geographical questions and what question do you want to ask now')
-                question=takeCommand()
-                app_id="R2K75H-7ELALHR35X"
-                client = wolframalpha.Client('R2K75H-7ELALHR35X')
-                res = client.query(question)
-                answer = next(res.results).text
-                speak(answer)
-                print(answer)
+            # elif 'ask' in statement:
+            #     speak('I can answer to computational and geographical questions and what question do you want to ask now')
+            #     question=takeCommand()
+            #     app_id="R2K75H-7ELALHR35X"
+            #     client = wolframalpha.Client('R2K75H-7ELALHR35X')
+            #     res = client.query(question)
+            #     answer = next(res.results).text
+            #     speak(answer)
+            #     print(answer)
 
 
             elif "log off" in statement or "sign out" in statement:

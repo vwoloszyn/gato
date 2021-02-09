@@ -1,5 +1,6 @@
-SpeechRecognition
+pocketsphinx
 pyttsx3
+SpeechRecognition
 wikipedia
 rpi_ws281x
-ecapture
+pyaudio

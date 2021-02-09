@@ -12,6 +12,7 @@ services:
     #- ES_SERVER=${ES_SERVER}
     volumes:
       - ./services/core:/code
+      - /dev/snd:/dev/snd
     #ports:
     # # - 8000:8000
     
