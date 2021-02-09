@@ -6,8 +6,8 @@ services:
     build:
       context: ./services/core
     command: python3 main.py
-    #environment:
-    #- ES_USER=${ES_USER}
+    environment:
+    - environment=${environment}
     #- ES_PASSWORD=${ES_PASSWORD}
     #- ES_SERVER=${ES_SERVER}
     volumes:

@@ -16,6 +16,10 @@ from pocketsphinx.pocketsphinx import *
 from sphinxbase.sphinxbase import *
 import time
 
+if (os.environ.get('environment')=="pi"):
+    from helper.Server.Led import *
+    led=Led()
+
 #r = sr.Recognizer()
 #source = sr.Microphone()
 
@@ -102,7 +106,8 @@ def recognize_main():
 
 
     
-    print("acordei")
+    if (os.environ.get('environment')=="pi"):
+        led.colorWipe(led.strip, Color(0, 255, 0))
     speak("Meow")
     global active
     if active == False:
@@ -256,7 +261,8 @@ def start_recognizer():
 source = sr.Microphone()
 r = sr.Recognizer()
 if __name__ == '__main__':
-    
+    if (os.environ.get('environment')=="pi"):
+        led.colorWipe(led.strip, Color(0, 255, 0))
     start_recognizer()
 
 
